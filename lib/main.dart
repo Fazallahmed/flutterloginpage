@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'HomeScreen.dart';
 
 void main() {
@@ -12,7 +13,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.white,
+        fontFamily: GoogleFonts.poppins().fontFamily, // Better typography
       ),
       home: LoginScreen(),
     );
@@ -29,7 +30,26 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _isPasswordVisible = false; // Toggle for password visibility
+  bool _isPasswordVisible = false;
+
+  void _login() {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+
+      Future.delayed(Duration(seconds: 2), () {
+        setState(() => _isLoading = false);
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
+        );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.deepOrange, Colors.red.shade600],
+            colors: [Colors.deepPurple.shade400, Colors.pink.shade300],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -46,24 +66,25 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              elevation: 10,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              elevation: 15,
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(25.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0, end: 1),
+                        duration: Duration(seconds: 1),
+                        builder: (context, value, child) => Opacity(opacity: value, child: child),
+                        child: Icon(Icons.lock, size: 60, color: Colors.deepPurple),
+                      ),
+                      SizedBox(height: 15),
                       Text(
-                        'Welcome Back!',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                        ),
+                        'Login to Continue',
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
                       ),
                       SizedBox(height: 20),
                       TextFormField(
@@ -71,18 +92,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: InputDecoration(
                           labelText: 'Email',
                           prefixIcon: Icon(Icons.email),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Enter your email';
-                          } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                            return 'Enter a valid email';
-                          }
-                          return null;
-                        },
+                        validator: (value) => value!.isEmpty ? 'Enter your email' : null,
                       ),
                       SizedBox(height: 10),
                       TextFormField(
@@ -92,76 +104,30 @@ class _LoginScreenState extends State<LoginScreen> {
                           labelText: 'Password',
                           prefixIcon: Icon(Icons.lock),
                           suffixIcon: IconButton(
-                            icon: Icon(
-                              _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
+                            icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                            onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Enter your password';
-                          }
-                          return null;
-                        },
+                        validator: (value) => value!.isEmpty ? 'Enter your password' : null,
                       ),
                       SizedBox(height: 10),
                       Align(
                         alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {}, // Implement Forgot Password functionality
-                          child: Text('Forgot Password?'),
-                        ),
+                        child: TextButton(onPressed: () {}, child: Text('Forgot Password?')),
                       ),
                       SizedBox(height: 20),
                       _isLoading
-                          ? CircularProgressIndicator() // Show loading indicator while logging in
+                          ? CircularProgressIndicator()
                           : ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            setState(() {
-                              _isLoading = true;
-                            });
-
-                            Future.delayed(Duration(seconds: 2), () {
-                              setState(() {
-                                _isLoading = false;
-                              });
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) =>
-                                      HomeScreen(),
-                                  transitionsBuilder:
-                                      (context, animation, secondaryAnimation, child) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    );
-                                  },
-                                ),
-                              );
-                            });
-                          }
-                        },
+                        onPressed: _login,
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 50, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          backgroundColor: Colors.red,
+                          padding: EdgeInsets.symmetric(horizontal: 60, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          backgroundColor: Colors.deepPurple,
+                          elevation: 10,
                         ),
-                        child: Text(
-                          'Login',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
+                        child: Text('Login', style: TextStyle(fontSize: 18, color: Colors.white)),
                       ),
                     ],
                   ),
